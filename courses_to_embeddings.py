@@ -1,0 +1,57 @@
+import psycopg2
+from embeddings_gen import generate_embedding
+
+
+def make_embeddings_table(conn, cur, school):
+    cur.execute(f"""
+                IF EXISTS table {school}_embeddings
+                THEN
+                    DROP TABLE {school}_embeddings;
+                END IF;""")
+
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS {school}_embeddings (
+            id SERIAL PRIMARY KEY,
+            description TEXT NOT NULL,
+            embedding VECTOR(768) NOT NULL,
+            course_id INTEGER REFERENCES {school}_courses(id)
+        )
+    """)
+
+    cur.execute(f"SELECT id, subject, number, name, description FROM {school}_courses")
+    course_data = cur.fetchall()
+    i = 0
+    for course_id, subject, number, name, description in course_data:
+        embedding_str = generate_embedding(
+            subject + " " + number + " " + name + " " + description
+        )
+
+        cur.execute(
+            f"INSERT INTO {school}_embeddings (description, embedding, course_id) VALUES (%s, %s, %s)",
+            (description, embedding_str, course_id),
+        )
+        print(f"Inserted embedding for course {name} ({i + 1}/{len(course_data)})")
+        i += 1
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def main():
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect("dbname=vector_search user=postgres")
+    cur = conn.cursor()
+    print("This drops the existing embeddings table and creates a new one.")
+    answer = input(
+        "Are you sure you want to create the embeddings table? Type 'I'm sure' to continue: "
+    )
+    if answer != "I'm sure":
+        print("Exiting...")
+        return
+    # Create the embeddings table
+    make_embeddings_table(conn, cur, "ASU")
+
+
+if __name__ == "__main__":
+    main()
