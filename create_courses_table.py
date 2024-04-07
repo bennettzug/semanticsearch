@@ -4,10 +4,8 @@ import csv
 
 def make_courses_table(conn, cur, school):
     cur.execute(f"""
-        IF EXISTS table {school}_courses
-        THEN
-            DROP TABLE {school}_courses;
-        END IF;""")
+        DROP TABLE IF EXISTS {school}_courses
+        """)
 
     cur.execute(f"""
         CREATE TABLE IF NOT EXISTS {school}_courses (
@@ -31,9 +29,7 @@ def make_courses_table(conn, cur, school):
                 (subject, number, name, description, credit_hours),
             )
 
-    conn.commit()
-    cur.close()
-    conn.close()
+
 
 
 def main():

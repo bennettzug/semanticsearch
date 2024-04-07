@@ -4,10 +4,8 @@ from embeddings_gen import generate_embedding
 
 def make_embeddings_table(conn, cur, school):
     cur.execute(f"""
-                IF EXISTS table {school}_embeddings
-                THEN
-                    DROP TABLE {school}_embeddings;
-                END IF;""")
+        DROP TABLE IF EXISTS {school}_embeddings
+        """)
 
     cur.execute(f"""
         CREATE TABLE IF NOT EXISTS {school}_embeddings (
@@ -33,9 +31,6 @@ def make_embeddings_table(conn, cur, school):
         print(f"Inserted embedding for course {name} ({i + 1}/{len(course_data)})")
         i += 1
 
-    conn.commit()
-    cur.close()
-    conn.close()
 
 
 def main():
@@ -51,6 +46,9 @@ def main():
         return
     # Create the embeddings table
     make_embeddings_table(conn, cur, "ASU")
+    conn.commit()
+    cur.close()
+    conn.close()
 
 
 if __name__ == "__main__":
