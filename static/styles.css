@@ -47,10 +47,7 @@ hr {
 
 .search-wrapper {
     position: relative;
-    width: calc(100% - 140px);
-    /* Adjust width to accommodate icon and dropdown */
-
-    /* Add margin between the search bar and dropdown */
+    width: 100%;
 }
 
 
@@ -111,4 +108,42 @@ hr {
 
 .course i {
     font-style: italic;
+}
+
+.college-selector {
+    height: 100%;
+}
+
+
+.college-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    /* Add this line */
+    gap: 2rem;
+    margin-top: 2rem;
+    justify-content: center;
+    /* Add this line to center the buttons horizontally */
+}
+
+.college-btn {
+    padding: 1rem 2rem;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+
+}
+
+
+
+.uiuc {
+    background-color: #FF5F0F;
+    color: white;
+}
+
+.asu {
+    background-color: #ffcc00;
+    color: black;
 }

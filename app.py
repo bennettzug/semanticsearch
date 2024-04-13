@@ -1,14 +1,14 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import psycopg2
 import configparser
 from querying import get_most_similar_courses
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="client/dist", static_url_path="")
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return send_from_directory("client/dist", "index.html")
 
 
 @app.route("/search", methods=["GET", "POST"])
@@ -28,16 +28,14 @@ def search():
     config = configparser.ConfigParser()
     config.read("config.ini")
 
-    
     conn = psycopg2.connect(
-            dbname=config['database']['dbname'],
-            user=config['database']['user'],
-            password=config['database']['password'],
-            host=config['database']['host'],
-            port=config['database']['port']
-        )
+        dbname=config["database"]["dbname"],
+        user=config["database"]["user"],
+        password=config["database"]["password"],
+        host=config["database"]["host"],
+        port=config["database"]["port"],
+    )
     cur = conn.cursor()
- 
 
     search_results = get_most_similar_courses(conn, cur, query, selected_school, n=10)
     return jsonify(search_results)

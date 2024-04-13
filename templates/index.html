@@ -9,35 +9,44 @@
 </head>
 
 <body>
-    <div class="container mt-5" x-data="{ query: '' }">
-        <h1>Course Search</h1>
-        <p>Search for courses with an AI based semantic search.</p>
-        <p>We search courses by their meaning, not exact keywords. Try something like "cooking and chemistry", or "<span
-                class="misspelled">Mathamatics</span>."</p>
-
-        <div class="search-bar">
-            <select x-model="school" id="school" class="school-select form-select mb-2">
-                <option value="UIUC">UIUC</option>
-                <option value="ASU">ASU</option>
-            </select>
-            <div class="search-wrapper">
-                <span class="search-icon" @click="search()">
-                    <svg width="24px" height="24px" stroke-width="1.5" viewBox="0 0 24 24" fill="none"
-                        color="currentColor">
-                        <path d="M15.5 15.5L19 19M5 11a6 6 0 1012 0 6 6 0 00-12 0z" stroke="currentColor"
-                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    </svg>
-                </span>
-                <input type="text" id="searchInput" class="search-input form-control mb-2"
-                    placeholder="search something..." @keyup.enter="search()">
+    <div class="container mt-5"
+        x-data="{school: null, schoolName: null, showSearch: false, accentColor: null, query: '', search() { sendSearchRequest(this.query, this.school) } }">
+        <div x-show="!showSearch" class="college-selector">
+            <h1>Select a College</h1>
+            <div class="college-buttons">
+                <button x-on:click="school = 'UIUC';
+                schoolName='University of Illinois'; accentColor=color( #FF5F0F);
+                 showSearch = true" class="college-btn uiuc">University of
+                    Illinois Urbana-Champaign</button>
+                <button x-on:click="school = 'ASU'; 
+                schoolName='Appalachian State University'; accentColor=#FFCC00;
+                 showSearch = true" class="college-btn asu">Appalachian State
+                    University</button>
             </div>
-
-
-
+        </div>
+        <div x-show="showSearch">
+            <h1><span x-text="schoolName"></span></h1>
+            <p>Selected College is <span x-text="schoolName"></span>. <a href="#"
+                    x-on:click.prevent="showSearch = false">Select a different college?</a></p>
+            <p>Search for courses with an AI based semantic search.</p>
+            <p>We search courses by their meaning, not exact keywords. Try something like "cooking and chemistry", or
+                "<span class="misspelled">mathamatics</span>."</p>
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <span class="search-icon" @click="search()">
+                        <svg width="24px" height="24px" stroke-width="1.5" viewBox="0 0 24 24" fill="none"
+                            color="currentColor">
+                            <path d="M15.5 15.5L19 19M5 11a6 6 0 1012 0 6 6 0 00-12 0z" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </span>
+                    <input type="text" id="searchInput" class="search-input form-control mb-2"
+                        placeholder="search something..." x-model="query" @keyup.enter="search()">
+                </div>
+            </div>
+            <div id="searchResults" class="mt-3"></div>
         </div>
 
-
-        <div id="searchResults" class="mt-3"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.7.3/dist/alpine.js" defer></script>
