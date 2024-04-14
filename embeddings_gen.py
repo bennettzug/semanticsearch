@@ -2,6 +2,7 @@ import json
 import torch.nn.functional as F
 from torch import Tensor
 from transformers import AutoTokenizer, AutoModel
+import torch
 
 
 def average_pool(last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
@@ -14,6 +15,13 @@ model = AutoModel.from_pretrained("thenlper/gte-base")
 
 
 def generate_embedding(text: str) -> str:
+    torch.device(
+        "cuda"
+        if torch.cuda.is_available()
+        else "mps"
+        if torch.backends.mps.is_available()
+        else "cpu"
+    )
     inputs = tokenizer(text, return_tensors="pt")
     outputs = model(**inputs)
     embedding = average_pool(outputs.last_hidden_state, inputs["attention_mask"])

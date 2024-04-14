@@ -1,13 +1,6 @@
 import configparser
 import psycopg2
-import create_courses_table
-import courses_to_embeddings
-
-
-def add_schools(conn, cur, schools):
-    for school in schools:
-        create_courses_table.make_courses_table(conn, cur, school)
-        courses_to_embeddings.make_embeddings_table(conn, cur, school)
+import make_dbs
 
 
 def main():
@@ -23,21 +16,25 @@ def main():
             port=config["database"]["port"],
         )
         cur = conn.cursor()
-        schools = ["ASU", "UIUC"]
+
+        input_schools = input(
+            "Enter the schools you want to add separated by a space: "
+        )
+        schools = input_schools.split(" ")
         answer = input(
-            f"this will delete and rebuild databases for all of {schools}. Type 'I'm sure' to confirm.\n"
+            f"This will delete if exists and rebuild databases for all of {schools} schools. Type 'I'm sure' to confirm.\n"
         )
         if answer != "I'm sure":
-            print("exiting...")
+            print("Exiting...")
             return
-        add_schools(conn, cur, schools)
-
+        make_dbs.add_schools(conn, cur, schools)
         conn.commit()
         cur.close()
         conn.close()
 
     except psycopg2.Error as e:
         print("Error connecting to PostgreSQL:", e)
+        return
 
 
 if __name__ == "__main__":

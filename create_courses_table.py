@@ -18,7 +18,7 @@ def make_courses_table(conn, cur, school):
         )
     """)
 
-    with open(f"{school}_courses.csv", "r") as csvfile:
+    with open(f"coursedata/{school.lower()}/{school}_courses.csv", "r") as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Skip header row
 
@@ -28,8 +28,6 @@ def make_courses_table(conn, cur, school):
                 f"INSERT INTO {school}_courses (subject, number, name, description, credit_hours) VALUES (%s, %s, %s, %s, %s)",
                 (subject, number, name, description, credit_hours),
             )
-
-
 
 
 def main():
