@@ -28,7 +28,12 @@
             <h1 style="color: {selectedSchool.accentColor}">
                 {selectedSchool.longName}
             </h1>
-            <a href="#" class="change-school" on:click={changeSchool}>
+            <!-- svelte-ignore a11y-invalid-attribute -->
+            <a
+                href="javascript:void(0);"
+                class="change-school"
+                on:click={changeSchool}
+            >
                 Change Schools?
             </a>
         </div>
