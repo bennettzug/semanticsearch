@@ -26,8 +26,11 @@
         },
     ];
     $: visibleSchools = search
-        ? schools.filter((school) =>
-              school.longName.toLowerCase().includes(search.toLowerCase()),
+        ? schools.filter(
+              (school) =>
+                  school.longName.toLowerCase() +
+                  " " +
+                  school.shortName.toLowerCase().includes(search.toLowerCase()),
           )
         : schools;
 
