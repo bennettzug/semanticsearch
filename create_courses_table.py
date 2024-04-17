@@ -1,14 +1,20 @@
 import psycopg2
 import csv
+from psycopg2 import sql
 
 
 def make_courses_table(conn, cur, school):
-    cur.execute(f"""
-        DROP TABLE IF EXISTS {school}_courses
-        """)
+    courses_table = f"{school.lower()}_courses"
+    # cur.execute(f"""
+    #     DROP TABLE IF EXISTS {school}_courses
+    #     """)
+    cur.execute(
+        sql.SQL("DROP TABLE IF EXISTS {}").format(sql.Identifier(courses_table))
+    )
 
-    cur.execute(f"""
-        CREATE TABLE IF NOT EXISTS {school}_courses (
+    cur.execute(
+        sql.SQL("""
+        CREATE TABLE IF NOT EXISTS {} (
             id SERIAL PRIMARY KEY,
             subject TEXT NOT NULL,
             number TEXT NOT NULL,
@@ -16,7 +22,8 @@ def make_courses_table(conn, cur, school):
             description TEXT NOT NULL,
             credit_hours TEXT NOT NULL
         )
-    """)
+    """).format(sql.Identifier(courses_table))
+    )
 
     with open(f"coursedata/{school.lower()}/{school}_courses.csv", "r") as csvfile:
         reader = csv.reader(csvfile)
@@ -25,7 +32,9 @@ def make_courses_table(conn, cur, school):
         for row in reader:
             subject, number, name, description, credit_hours = row
             cur.execute(
-                f"INSERT INTO {school}_courses (subject, number, name, description, credit_hours) VALUES (%s, %s, %s, %s, %s)",
+                sql.SQL(
+                    "INSERT INTO {} (subject, number, name, description, credit_hours) VALUES (%s, %s, %s, %s, %s)"
+                ).format(sql.Identifier(courses_table)),
                 (subject, number, name, description, credit_hours),
             )
 

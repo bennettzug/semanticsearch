@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import sql
 from courses_to_embeddings import generate_embedding
 
 
@@ -6,18 +7,20 @@ def get_most_similar_courses(
     conn, cur, query: str, school: str, n: int = 5
 ) -> list[tuple[any, ...]]:
     query_embedding = generate_embedding(query)
-
-    cur.execute(
-        f"""
+    embedding_table = f"{school.lower()}_embeddings"
+    courses_table = f"{school.lower()}_courses"
+    query = sql.SQL(
+        """
         SELECT DISTINCT c.subject, c.number, c.name, c.description, c.credit_hours, 
        1 - (e.embedding <=> %s) AS cosine_similarity 
-        FROM {school}_embeddings e 
-        JOIN {school}_courses c ON e.course_id = c.id 
+        FROM {et} e 
+        JOIN {ct} c ON e.course_id = c.id 
         ORDER BY cosine_similarity DESC 
-        LIMIT {n};
-        """,
-        (query_embedding,),
-    )
+        LIMIT %s;
+        """
+    ).format(et=sql.Identifier(embedding_table), ct=sql.Identifier(courses_table))
+
+    cur.execute(query, (query_embedding, n))
     results = cur.fetchall()
     new_results = []
     for row in results:
