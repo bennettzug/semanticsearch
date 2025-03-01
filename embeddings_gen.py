@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from torch import Tensor
 from transformers import AutoTokenizer, AutoModel
 import torch
+from functools import cache
 
 
 def average_pool(last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:
@@ -14,6 +15,7 @@ tokenizer = AutoTokenizer.from_pretrained("thenlper/gte-base")
 model = AutoModel.from_pretrained("thenlper/gte-base")
 
 
+@cache
 def generate_embedding(text: str) -> str:
     torch.device(
         "cuda"
