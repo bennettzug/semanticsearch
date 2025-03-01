@@ -1,9 +1,9 @@
-from selectolax.parser import HTMLParser
-import httpx
-from dataclasses import dataclass
-
 # import re
 import csv
+from dataclasses import dataclass
+
+import httpx
+from selectolax.parser import HTMLParser
 
 
 @dataclass
@@ -38,22 +38,12 @@ def get_courses(subjects: dict):
 
         for course in courses:
             # print(course.text() + "\n\n")
-            subjectandnumber = course.css_first(
-                "span.text.detail-code.margin--tiny.text--semibold.text--big"
-            ).text()
+            subjectandnumber = course.css_first("span.text.detail-code.margin--tiny.text--semibold.text--big").text()
             subjectandnumber = subjectandnumber.split("/")[0]
             subject = subjectandnumber.split()[0]
             number = subjectandnumber.split()[1].split(".")[0]
-            name = (
-                course.css_first(
-                    "span.text.detail-title.margin--tiny.text--semibold.text--big"
-                )
-                .text()
-                .split(".")[0]
-            )
-            hours = course.css_first(
-                "span.text.detail-hours.margin--tiny.text--semibold.text--big"
-            ).text()
+            name = course.css_first("span.text.detail-title.margin--tiny.text--semibold.text--big").text().split(".")[0]
+            hours = course.css_first("span.text.detail-hours.margin--tiny.text--semibold.text--big").text()
             hours = hours.strip("()").split(" ")[0]
             try:
                 description = course.css_first("div > p").text()

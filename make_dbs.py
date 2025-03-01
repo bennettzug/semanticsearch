@@ -1,7 +1,9 @@
 import configparser
+
 import psycopg2
-import create_courses_table
+
 import courses_to_embeddings
+import create_courses_table
 
 
 def add_schools(conn, cur, schools):
@@ -24,9 +26,7 @@ def main():
         )
         cur = conn.cursor()
         schools = ["ASU", "UIUC"]
-        answer = input(
-            f"this will delete and rebuild databases for all of {schools}. Type 'I'm sure' to confirm.\n"
-        )
+        answer = input(f"this will delete and rebuild databases for all of {schools}. Type 'I'm sure' to confirm.\n")
         if answer != "I'm sure":
             print("exiting...")
             return
