@@ -1,5 +1,6 @@
-import psycopg2
 import csv
+
+import psycopg2
 from psycopg2 import sql
 
 
@@ -8,9 +9,7 @@ def make_courses_table(conn, cur, school):
     # cur.execute(f"""
     #     DROP TABLE IF EXISTS {school}_courses
     #     """)
-    cur.execute(
-        sql.SQL("DROP TABLE IF EXISTS {}").format(sql.Identifier(courses_table))
-    )
+    cur.execute(sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(courses_table)))
 
     cur.execute(
         sql.SQL("""
@@ -44,9 +43,7 @@ def main():
     conn = psycopg2.connect("dbname=vector_search user=postgres")
     cur = conn.cursor()
     print("This drops the existing courses table and creates a new one.")
-    answer = input(
-        "Are you sure you want to create the courses table? Type 'I'm sure' to continue: "
-    )
+    answer = input("Are you sure you want to create the courses table? Type 'I'm sure' to continue: ")
     if answer != "I'm sure":
         print("Exiting...")
         return
