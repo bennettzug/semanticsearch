@@ -1,39 +1,18 @@
 <script>
     import { createEventDispatcher } from "svelte";
+    import { SCHOOLS } from "./data/schools";
 
     const dispatch = createEventDispatcher();
-    let search = undefined;
-    const schools = [
-        {
-            shortName: "UIUC",
-            longName: "University of Illinois Urbana-Champaign",
-            accentColor: "#FF5F0F",
-        },
-        {
-            shortName: "ASU",
-            longName: "Appalachian State University",
-            accentColor: "#FFCC00",
-        },
-        {
-            shortName: "NCSU",
-            longName: "North Carolina State University",
-            accentColor: "#CC0000",
-        },
-        {
-            shortName: "UNC",
-            longName: "University of North Carolina",
-            accentColor: "#7BAFD4",
-        },
-    ];
-    $: visibleSchools = search
-        ? schools.filter((school) =>
-              (
-                  school.longName.toLowerCase() +
-                  " " +
-                  school.shortName.toLowerCase()
-              ).includes(search.toLowerCase()),
-          )
-        : schools;
+    let search = "";
+
+    $: visibleSchools = SCHOOLS.filter((school) => {
+        if (!search) {
+            return true;
+        }
+
+        const searchable = `${school.longName} ${school.shortName}`.toLowerCase();
+        return searchable.includes(search.toLowerCase());
+    });
 
     function selectSchool(school) {
         dispatch("schoolSelected", school);

@@ -12,4 +12,5 @@ dependencies = [
     "selectolax>=0.3.28",
     "torch>=2.6.0",
     "transformers>=4.49.0",
+    "tqdm>=4.67.1",
 ]

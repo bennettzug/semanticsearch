@@ -1,52 +1,112 @@
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Any, Dict, Iterable, List, Optional
+
 import psycopg2
 from psycopg2 import sql
+from psycopg2.extensions import cursor
+
 from courses_to_embeddings import generate_embedding
+
+CourseResult = Dict[str, Any]
 
 
 def get_most_similar_courses(
-    conn, cur, query: str, school: str, n: int = 5
-) -> list[tuple[any, ...]]:
+    cur: cursor,
+    *,
+    query: str,
+    school: Optional[str] = None,
+    limit: int = 5,
+) -> List[CourseResult]:
+    """Return the most similar courses for a free-text query."""
+
     query_embedding = generate_embedding(query)
-    embedding_table = f"{school.lower()}_embeddings"
-    courses_table = f"{school.lower()}_courses"
-    query = sql.SQL(
+    school_filter = sql.SQL("WHERE c.school = %s") if school else sql.SQL("")
+
+    statement = sql.SQL(
         """
-        SELECT DISTINCT c.subject, c.number, c.name, c.description, c.credit_hours, 
-       1 - (e.embedding <=> %s) AS cosine_similarity 
-        FROM {et} e 
-        JOIN {ct} c ON e.course_id = c.id 
-        ORDER BY cosine_similarity DESC 
-        LIMIT %s;
+        SELECT
+            c.school,
+            c.subject,
+            c.number,
+            c.name,
+            c.description,
+            c.credit_hours,
+            1 - (ce.embedding <=> %s) AS cosine_similarity
+        FROM course_embeddings AS ce
+        JOIN courses AS c ON ce.course_id = c.id
+        {school_filter}
+        ORDER BY cosine_similarity DESC
+        LIMIT %s
         """
-    ).format(et=sql.Identifier(embedding_table), ct=sql.Identifier(courses_table))
+    ).format(school_filter=school_filter)
 
-    cur.execute(query, (query_embedding, n))
-    results = cur.fetchall()
-    new_results = []
-    for row in results:
-        list_row = list(row)
-        hours = list_row[4]
-        if "hours." in hours:
-            list_row[4] = list_row[4].split("hours.")[0]
-        new_results.append(tuple(list_row))
+    params: tuple[Any, ...]
+    if school:
+        params = (query_embedding, school.upper(), limit)
+    else:
+        params = (query_embedding, limit)
 
-    return new_results
+    cur.execute(statement, params)
+    rows = cur.fetchall()
+
+    return [_map_row_to_result(row) for row in rows]
 
 
-def main():
+def _map_row_to_result(row: Iterable[Any]) -> CourseResult:
+    school, subject, number, name, description, credit_hours, similarity = row
+    return {
+        "school": school,
+        "subject": subject,
+        "number": number,
+        "name": name,
+        "description": description,
+        "creditHours": _normalise_credit_hours(credit_hours),
+        "similarity": _normalise_similarity(similarity),
+    }
+
+
+def _normalise_credit_hours(value: Any) -> str:
+    if value is None:
+        return ""
+
+    text = str(value)
+    if "hour" in text:
+        text = text.replace("hours.", "").replace("hour.", "").strip()
+
+    return text
+
+
+def _normalise_similarity(value: Any) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def main() -> None:
     conn = psycopg2.connect("dbname=vector_search user=postgres")
     cur = conn.cursor()
 
     query = input("Enter a query: ")
-    results = get_most_similar_courses(conn, cur, query)
+    school = input("Enter a school code (blank for all): ") or None
+    results = get_most_similar_courses(cur, query=query, school=school)
     print("Query:", query)
     print("Most similar courses:")
-    for row in results:
-        subject, number, name, description, credit_hours, cosine_similarity = row
-        print(f"{subject} {number}: {name}")
-        print(f"{description}")
-        print(f"Credit Hours: {credit_hours}")
-        print(f"Cosine Similarity: {cosine_similarity}")
+    for result in results:
+        print(
+            f"{result['school']} | {result['subject']} {result['number']}: {result['name']}"
+        )
+        print(result["description"])
+        print(f"Credit Hours: {result['creditHours']}")
+        print(f"Cosine Similarity: {result['similarity']}")
         print("---")
 
     cur.close()

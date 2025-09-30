@@ -2,6 +2,7 @@
     import SchoolSelector from "./SchoolSelector.svelte";
     import SearchBar from "./SearchBar.svelte";
     import SearchResults from "./SearchResults.svelte";
+    import { SCHOOLS } from "./data/schools";
 
     let selectedSchool = null;
 
@@ -13,10 +14,10 @@
     }
 </script>
 
-<head>
+<svelte:head>
     <title>Course Search</title>
     <link rel="icon" type="image/svg+xml" href="assets/search.svg" />
-</head>
+</svelte:head>
 
 <main>
     {#if !selectedSchool}

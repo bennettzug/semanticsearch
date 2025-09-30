@@ -1,8 +1,9 @@
-from ts.torch_handler.base_handler import BaseHandler
 import json
+
 import torch.nn.functional as F
 from torch import Tensor
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel, AutoTokenizer
+from ts.torch_handler.base_handler import BaseHandler
 
 
 class ModelHandler(BaseHandler):

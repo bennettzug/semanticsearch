@@ -1,29 +1,55 @@
 <script>
     import { sendSearchRequest } from "./utils/searchService";
-    import { writable } from "svelte/store";
+    import { searchStore } from "./lib/stores/searchStore";
+
     export let selectedCollege = null;
 
     let query = "";
-    let searchResults = writable([]);
+    let previousCollege = null;
+    let schoolSelected = false;
 
-    async function search() {
-        // Call the search function with the query
-        const results = await sendSearchRequest(query, selectedCollege);
-        searchResults.set(results);
+    $: if (selectedCollege !== previousCollege) {
+        previousCollege = selectedCollege;
+        if (!selectedCollege) {
+            query = "";
+        }
+        searchStore.reset();
     }
 
-    function handleKeyup(event) {
-        if (event.key === "Enter") {
-            search();
+    $: schoolSelected = Boolean(selectedCollege);
+
+    async function search() {
+        const trimmedQuery = query.trim();
+        const schoolCode = selectedCollege ? selectedCollege.toUpperCase() : null;
+
+        if (!schoolSelected || trimmedQuery.length === 0) {
+            searchStore.reset();
+            return;
+        }
+
+        searchStore.start(trimmedQuery, schoolCode);
+
+        try {
+            const results = await sendSearchRequest(trimmedQuery, selectedCollege);
+            searchStore.succeed(trimmedQuery, schoolCode, results);
+        } catch (error) {
+            console.error("Semantic search request failed", error);
+            const message = error instanceof Error ? error.message : "Unable to fetch results.";
+            searchStore.fail(trimmedQuery, schoolCode, message);
+        }
+    }
+
+    function handleInput(event) {
+        query = event.currentTarget.value;
+        if (query.trim().length === 0) {
+            searchStore.reset();
         }
     }
 </script>
 
 <div class="search-bar">
-    <div class="search-wrapper">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <span class="search-icon" on:click={search}>
+    <form class="search-wrapper" on:submit|preventDefault={search}>
+        <button type="submit" class="search-icon" aria-label="Submit search" disabled={!schoolSelected}>
             <svg
                 width="22"
                 height="22"
@@ -36,35 +62,14 @@
                     fill="#CACACA"
                 />
             </svg>
-        </span>
+        </button>
         <input
             type="text"
             class="search-input form-control mb-2"
-            placeholder="search something..."
+            placeholder="Search courses..."
             bind:value={query}
-            on:keyup={handleKeyup}
+            on:input={handleInput}
+            disabled={!schoolSelected}
         />
-    </div>
+    </form>
 </div>
-
-{#if $searchResults.length === 0}
-    <div class="default-message">
-        <p>Search for courses with an AI based semantic search.</p>
-        <p>
-            We search courses by their meaning, not exact keywords. Try
-            something like "cooking and chemistry", or "<span class="misspelled"
-                >mathamatics</span
-            >."
-        </p>
-    </div>
-{:else}
-    <div id="searchResults" class="mt-3">
-        {#each $searchResults as course}
-            <div class="course">
-                <p><strong>{course[0]} {course[1]}: {course[2]}</strong></p>
-                <p>{course[3]}</p>
-                <p><i>{course[4]} hour(s).</i></p>
-            </div>
-        {/each}
-    </div>
-{/if}

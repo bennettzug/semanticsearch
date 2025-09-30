@@ -1,9 +1,10 @@
 import json
+from functools import cache
+
+import torch
 import torch.nn.functional as F
 from torch import Tensor
-from transformers import AutoTokenizer, AutoModel
-import torch
-from functools import cache
+from transformers import AutoModel, AutoTokenizer
 
 
 def average_pool(last_hidden_states: Tensor, attention_mask: Tensor) -> Tensor:

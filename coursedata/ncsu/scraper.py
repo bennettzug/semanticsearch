@@ -38,11 +38,15 @@ def get_courses(subjects: dict):
 
         for course in courses:
             # print(course.text() + "\n\n")
-            subjectandnumber = course.css_first("span.text.detail-coursecode.text--semibold").text()
+            subjectandnumber = course.css_first(
+                "span.text.detail-coursecode.text--semibold"
+            ).text()
             subjectandnumber = subjectandnumber.split("/")[0]
             subject = subjectandnumber.split()[0]
             number = subjectandnumber.split()[1]
-            name = course.css_first("span.text.detail-title.margin--tiny.text--semibold").text()
+            name = course.css_first(
+                "span.text.detail-title.margin--tiny.text--semibold"
+            ).text()
             hours = course.css_first("span.text.detail-hours_html").text()
             hours = hours.strip("()").split(" ")[0]
             try:
