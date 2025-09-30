@@ -10,6 +10,28 @@ environment variable whenever possible.
 
 ---
 
+## Quick Bootstrap (Ubuntu 22.04+ or Oracle Linux 8.10 ARM)
+
+After cloning the repository on a fresh server you can let the helper script
+handle the heavy lifting (system packages, `uv sync`, frontend build, database
+bootstrap, systemd/nginx wiring):
+
+```bash
+sudo -E DATABASE_URL="postgresql://user:pass@db-host:5432/vector_search" \
+  APP_DOMAIN="courses.example.com" \
+  COURSE_SCHOOLS="ASU UIUC" \
+  bash scripts/bootstrap.sh
+```
+
+The script detects whether the host uses `apt` (Ubuntu/Debian) or `dnf`
+(Oracle/RHEL family). On Oracle Linux it attempts to enable the Python 3.12
+module and install the `oracle-epel-release` repository when available. If the
+Python 3.12 packages are still missing, enable the appropriate AppStream/EPEL
+repository manually before re-running the script.
+
+The remainder of this guide walks through the manual process should you prefer
+to configure each step by hand.
+
 ## Option A – Self-Managed VPS (Ubuntu 22.04+)
 
 ### 1. Provision & Secure the Server
@@ -28,7 +50,8 @@ environment variable whenever possible.
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y build-essential git python3.12 python3.12-venv python3-pip \
-    nodejs npm postgresql-client libpq-dev nginx certbot python3-certbot-nginx curl
+    python3-dev postgresql-client libpq-dev nginx certbot python3-certbot-nginx \
+    curl pkg-config
 
 # Install uv (places the binary in ~/.local/bin by default)
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -36,6 +59,27 @@ export PATH="$HOME/.local/bin:$PATH"
 ```
 Add the `PATH` export to your shell profile (`~/.profile`) so the systemd unit
 can find uv-managed virtualenv binaries.
+
+#### Oracle Linux / RHEL Notes
+- Install the analogous packages with `dnf` (Oracle Linux shown; adjust for
+  RHEL as needed):
+  ```bash
+  sudo dnf install -y oracle-epel-release-el8      # Oracle Linux only, if available
+  sudo dnf module enable -y python:3.12            # Enable AppStream module when required
+  sudo dnf install -y gcc gcc-c++ make git python3.12 python3.12-venv \
+      python3.12-devel python3-pip postgresql postgresql-devel nginx \
+      certbot python3-certbot-nginx curl pkgconf-pkg-config ca-certificates
+  ```
+- Install uv and Node.js 18:
+  ```bash
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="$HOME/.local/bin:$PATH"
+  curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+  sudo dnf install -y nodejs
+  ```
+- If Python 3.12 packages are still unavailable, configure the appropriate
+  repositories (AppStream/EPEL/CodeReady) or build Python 3.12 from source
+  before continuing.
 
 ### 3. Prepare PostgreSQL With pgvector
 - Use a managed PostgreSQL instance or install Postgres locally.

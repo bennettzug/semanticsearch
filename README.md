@@ -105,7 +105,7 @@ unique index.
 See `DEPLOYMENT.md` for a detailed guide covering both VPS-based and Railway
 deployments, including database bootstrap steps.
 
-For a quick start on a fresh Ubuntu host you can run the helper script after
+For a quick start on a fresh Ubuntu or Oracle Linux host you can run the helper script after
 cloning the repository:
 
 ```bash
